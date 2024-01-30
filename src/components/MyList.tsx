@@ -1,7 +1,13 @@
 import character from '../data/character.json';
 import CharacterListItem from './CharacterListItem';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
-import { useState, useEffect } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
 
 const initialPage = 'https://rickandmortyapi.com/api/character';
 
@@ -9,6 +15,8 @@ const MyList = () => {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
   const [nextPage, setNextPage] = useState('');
+
+  const { width } = useWindowDimensions();
 
   const fetchPage = async (url: string) => {
     if (loading) {
@@ -28,8 +36,11 @@ const MyList = () => {
   };
 
   const onRefresh = () => {
+    if (loading) {
+      return;
+    }
     setItems([]);
-    setNextPage(initialPage);
+    // setNextPage(initialPage);
     fetchPage(initialPage);
   };
 
@@ -37,17 +48,36 @@ const MyList = () => {
     fetchPage(initialPage);
   }, []);
 
+  const renderItem = useCallback(
+    ({ item }) => <CharacterListItem character={item} />,
+    []
+  );
+
+  if (items.length === 0) {
+    // this is only to make the debug prop on FlatList Work
+    return null;
+  }
+
+  const itemHeight = width + 40;
+
   return (
     <FlatList
       data={items}
-      renderItem={({ item }) => <CharacterListItem character={item} />}
+      renderItem={renderItem}
       contentContainerStyle={{ gap: 10 }}
       onEndReached={() => fetchPage(nextPage)}
       onEndReachedThreshold={5}
       ListFooterComponent={() => loading && <ActivityIndicator />}
       refreshing={loading}
       onRefresh={onRefresh}
-      // debug={true}
+      debug
+      // removeClippedSubviews={true}
+      initialNumToRender={3}
+      getItemLayout={(data, index) => ({
+        length: itemHeight,
+        offset: (itemHeight + 5) * index,
+        index,
+      })}
     />
   );
 };
