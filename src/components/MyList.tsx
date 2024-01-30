@@ -7,7 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 const initialPage = 'https://rickandmortyapi.com/api/character';
 
@@ -53,12 +53,32 @@ const MyList = () => {
     []
   );
 
+  const itemHeight = width + 40;
+
+  // Use case: increase impression count for posts
+  // that are visible on the screen for more than 0.5 seconds
+  const viewabilityConfigCallbackPairs = useMemo(() => {
+    return [
+      {
+        viewabilityConfig: {
+          minimumViewTime: 500,
+          itemVisiblePercentThreshold: 50,
+        },
+        onViewableItemsChanged: ({ changed, viewableItems }) => {
+          changed.forEach((changedItem) => {
+            if (changedItem.isViewable) {
+              console.log('++ Impression for: ', changedItem.item.id);
+            }
+          });
+        },
+      },
+    ];
+  }, []);
+
   if (items.length === 0) {
     // this is only to make the debug prop on FlatList Work
     return null;
   }
-
-  const itemHeight = width + 40;
 
   return (
     <FlatList
@@ -78,6 +98,7 @@ const MyList = () => {
         offset: (itemHeight + 5) * index,
         index,
       })}
+      viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
     />
   );
 };
