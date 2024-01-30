@@ -11,6 +11,11 @@ const MyList = () => {
   );
 
   const fetchNextPage = async () => {
+    if (loading) {
+      return;
+    }
+
+    console.log('Fetching: ', nextPage);
     setLoading(true);
     const response = await fetch(nextPage);
     const responseJson = await response.json();
@@ -31,18 +36,9 @@ const MyList = () => {
       data={items}
       renderItem={({ item }) => <CharacterListItem character={item} />}
       contentContainerStyle={{ gap: 10 }}
-      ListFooterComponent={() => (
-        <View>
-          {loading && <ActivityIndicator />}
-
-          <Text
-            onPress={fetchNextPage}
-            style={{ alignSelf: 'center', fontSize: 20, color: 'blue' }}
-          >
-            Load more
-          </Text>
-        </View>
-      )}
+      onEndReached={fetchNextPage}
+      onEndReachedThreshold={5}
+      ListFooterComponent={() => loading && <ActivityIndicator />}
     />
   );
 };
