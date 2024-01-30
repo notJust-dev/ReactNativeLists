@@ -7,7 +7,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 const initialPage = 'https://rickandmortyapi.com/api/character';
 
@@ -57,23 +57,21 @@ const MyList = () => {
 
   // Use case: increase impression count for posts
   // that are visible on the screen for more than 0.5 seconds
-  const viewabilityConfigCallbackPairs = useMemo(() => {
-    return [
-      {
-        viewabilityConfig: {
-          minimumViewTime: 500,
-          itemVisiblePercentThreshold: 50,
-        },
-        onViewableItemsChanged: ({ changed, viewableItems }) => {
-          changed.forEach((changedItem) => {
-            if (changedItem.isViewable) {
-              console.log('++ Impression for: ', changedItem.item.id);
-            }
-          });
-        },
+  const viewabilityConfigCallbackPairs = useRef([
+    {
+      viewabilityConfig: {
+        minimumViewTime: 500,
+        itemVisiblePercentThreshold: 50,
       },
-    ];
-  }, []);
+      onViewableItemsChanged: ({ changed, viewableItems }) => {
+        changed.forEach((changedItem) => {
+          if (changedItem.isViewable) {
+            console.log('++ Impression for: ', changedItem.item.id);
+          }
+        });
+      },
+    },
+  ]);
 
   if (items.length === 0) {
     // this is only to make the debug prop on FlatList Work
@@ -85,6 +83,7 @@ const MyList = () => {
       data={items}
       renderItem={renderItem}
       contentContainerStyle={{ gap: 10 }}
+      columnWrapperStyle={{ gap: 5 }}
       onEndReached={() => fetchPage(nextPage)}
       onEndReachedThreshold={5}
       ListFooterComponent={() => loading && <ActivityIndicator />}
@@ -98,7 +97,8 @@ const MyList = () => {
         offset: (itemHeight + 5) * index,
         index,
       })}
-      viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
+      viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+      numColumns={2}
     />
   );
 };

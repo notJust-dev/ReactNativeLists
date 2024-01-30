@@ -19,6 +19,8 @@ const CharacterListItem = ({ character }: CharacterListItem) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
+    flex: 1,
+    borderRadius: 10,
   },
   name: {
     height: 20,
